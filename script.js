@@ -22,3 +22,14 @@ const quotes = [
     }
 
     document.getElementById('quote').textContent = getQuoteOfTheDay();
+
+    const form = document.getElementById('contact-form');
+
+  form.addEventListener('submit', function (e) {
+    const response = grecaptcha.getResponse();
+
+    if (!response) {
+      e.preventDefault(); // stop form from submitting
+      alert('Please complete the CAPTCHA before submitting.');
+    }
+  });
