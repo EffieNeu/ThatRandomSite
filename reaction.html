@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reaction Time Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+    #game {
+      height: 80vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      background-color: red;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+      margin-top: 2rem;
+    }
+    #play-again {
+      display: none;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background: #ffcc00;
+      border: none;
+      border-radius: 5px;
+      color: #111;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="game">Wait for green...</div>
+  <button id="play-again">Play Again</button>
+
+  <script>
+    const game = document.getElementById("game");
+    const playAgainBtn = document.getElementById("play-again");
+
+    let startTime, timeoutID, gameState = "waiting";
+
+    function getRandomDelay() {
+      return Math.floor(Math.random() * 3500) + 1500;
+    }
+
+    function startGame() {
+      playAgainBtn.style.display = "none";
+      gameState = "waiting";
+      game.textContent = "Wait for green...";
+      game.style.backgroundColor = "red";
+
+      timeoutID = setTimeout(() => {
+        gameState = "ready";
+        game.textContent = "CLICK!";
+        game.style.backgroundColor = "green";
+        startTime = new Date();
+      }, getRandomDelay());
+    }
+
+    game.addEventListener("click", () => {
+      if (gameState === "waiting") {
+        clearTimeout(timeoutID);
+        game.textContent = "Too soon! Click Play Again to try again.";
+        game.style.backgroundColor = "orange";
+        gameState = "tooSoon";
+        playAgainBtn.style.display = "inline-block";
+      } else if (gameState === "ready") {
+        const reactionTime = new Date() - startTime;
+        game.textContent = `Your reaction time: ${reactionTime} ms. Click Play Again to try again.`;
+        game.style.backgroundColor = "#222";
+        gameState = "done";
+        playAgainBtn.style.display = "inline-block";
+      }
+    });
+
+    playAgainBtn.addEventListener("click", startGame);
+
+    // Start the first game on page load
+    startGame();
+  </script>
+</body>
+</html>
