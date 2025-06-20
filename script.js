@@ -23,13 +23,13 @@ const quotes = [
 
     document.getElementById('quote').textContent = getQuoteOfTheDay();
 
-    const form = document.getElementById('contact-form');
+const form = document.getElementById('contact-form');
 
   form.addEventListener('submit', function (e) {
-    const response = grecaptcha.getResponse();
+    const captchaResponse = grecaptcha.getResponse();
 
-    if (!response) {
-      e.preventDefault(); // stop form from submitting
-      alert('Please complete the CAPTCHA before submitting.');
+    if (captchaResponse.length === 0) {
+      e.preventDefault();
+      alert("Please complete the CAPTCHA.");
     }
   });
