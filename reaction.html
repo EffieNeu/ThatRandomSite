@@ -48,6 +48,7 @@ nav a:hover {
       text-align: center;
     }
     #game {
+      display: none;
       height: 80vh;
       display: flex;
       justify-content: center;
@@ -59,7 +60,7 @@ nav a:hover {
       transition: background-color 0.3s;
       margin-top: 2rem;
     }
-    #play-again {
+    #play-again #start-btn {
       display: none;
       margin-top: 20px;
       font-size: 1.2rem;
@@ -70,6 +71,14 @@ nav a:hover {
       border-radius: 5px;
       color: #111;
       font-weight: bold;
+    }
+     #start-screen {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 2rem;
     }
   </style>
 </head>
@@ -85,12 +94,28 @@ nav a:hover {
     </nav>
   </header>
 
+  <div id="start-screen">
+  <h1>Reaction Time Game</h1>
+  <p>Instructions:</p>
+  <ul style="text-align: left; max-width: 500px; margin: 0 auto; font-size: 1.3rem;">
+    <li>Click the <strong>Start</strong> button to begin.</li>
+    <li>Wait for the screen to turn <strong>green</strong>.</li>
+    <li>Click as fast as you can!</li>
+    <li>If you click too early, you'll have to restart.</li>
+  </ul>
+  <button id="start-btn" style="margin-top: 40px; font-size: 1.5rem; padding: 0.75rem 1.5rem;">Start Game</button>
+</div>
+
+
   <div id="game">Wait for green...</div>
-  <button id="play-again">Play Again</button>
+  <button id="play-again" style="margin-top: 40px; font-size: 1.5rem; padding: 0.75rem 1.5rem;">Play Again</button>
 
   <script>
     const game = document.getElementById("game");
     const playAgainBtn = document.getElementById("play-again");
+    const startScreen = document.getElementById("start-screen");
+    const startBtn = document.getElementById("start-btn");
+
 
     let startTime, timeoutID, gameState = "waiting";
 
@@ -129,9 +154,12 @@ nav a:hover {
     });
 
     playAgainBtn.addEventListener("click", startGame);
-
-    // Start the first game on page load
+    startBtn.addEventListener("click", () => {
+    startScreen.style.display = "none";
+    game.style.display = "flex";
     startGame();
+    });
+
   </script>
 </body>
 </html>

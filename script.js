@@ -33,46 +33,7 @@ const form = document.getElementById('contact-form');
       alert("Please complete the CAPTCHA.");
     }
 
-    // Create tick marks
-const ticksContainer = document.getElementById("ticks");
-for (let i = 0; i <= 10; i++) {
-  let tick = document.createElement("div");
-  tick.style.transform = `rotate(${(-90 + i * 18)}deg) translateY(-65px)`;
-  ticksContainer.appendChild(tick);
-}
-
-// Simple speed test function
-function testSpeed() {
-  const imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg"; // ~5MB test file
-  const startTime = (new Date()).getTime();
-  const download = new Image();
-
-  download.onload = function () {
-    const endTime = (new Date()).getTime();
-    const duration = (endTime - startTime) / 1000;
-    const bitsLoaded = 5 * 1024 * 1024 * 8; // ~5MB in bits
-    const speedMbps = (bitsLoaded / duration / 1024 / 1024).toFixed(2);
-    updateSpeedometer(speedMbps);
-  };
-
-  download.onerror = function () {
-    document.getElementById("speedText").innerText = "Error testing speed";
-  };
-
-  download.src = imageAddr + "?nnn=" + Math.random();
-}
-
-function updateSpeedometer(speed) {
-  const needle = document.getElementById("needle");
-  const speedText = document.getElementById("speedText");
-  const maxSpeed = 100; // dial max
-  const rotation = -90 + (speed / maxSpeed) * 180;
-  needle.style.transform = `rotate(${rotation}deg)`;
-  speedText.innerText = `${speed} Mbps`;
-}
-
-// Run on page load
-window.onload = testSpeed;
+   
 
 
   });
