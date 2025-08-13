@@ -24,53 +24,7 @@
   z-index: 10;
   backdrop-filter: blur(6px);
 }
-.speedometer {
-  width: 250px;
-  height: 150px;
-  position: relative;
-  margin: 20px auto;
-  background: #111;
-  border-radius: 250px 250px 0 0;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0,0,0,0.7);
-}
 
-.ticks {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  transform-origin: bottom center;
-}
-
-.ticks div {
-  position: absolute;
-  width: 2px;
-  height: 10px;
-  background: white;
-  left: 50%;
-  top: 10px;
-  transform-origin: bottom;
-}
-
-.needle {
-  width: 4px;
-  height: 80px;
-  background: red;
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform-origin: bottom center;
-  transform: rotate(-90deg);
-  transition: transform 2s ease-out;
-}
-
-.speed-text {
-  text-align: center;
-  font-family: Arial, sans-serif;
-  font-size: 20px;
-  color: white;
-  margin-top: 10px;
-}
 
 nav ul {
   list-style: none;
