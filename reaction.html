@@ -170,7 +170,7 @@ nav a:hover {
 
     async function loadLeaderboard() {
       try {
-        const response = await fetch('/api/leaderboard');
+        const response = await fetch('https://that-random-site.vercel.app/api/leaderboard');
         const leaderboardData = await response.json();
         displayLeaderboard(leaderboardData);
       } catch (error) {
@@ -203,7 +203,7 @@ nav a:hover {
 
     async function checkIfRecord(time) {
       try {
-        const response = await fetch(`/api/check-record?time=${time}`);
+        const response = await fetch(`https://that-random-site.vercel.app/api/check-record?time=${time}`);
         const result = await response.json();
         return result.qualifies;
       } catch (error) {
@@ -214,7 +214,7 @@ nav a:hover {
 
     async function saveRecord(name, time) {
       try {
-        const response = await fetch('/api/leaderboard', {
+        const response = await fetch('https://that-random-site.vercel.app/api/leaderboard', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
