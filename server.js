@@ -1,46 +1,50 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
+const { kv } = require('@vercel/kv');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// In-memory storage for leaderboard (resets on server restart)
-// For production, you might want to use a database like MongoDB or PostgreSQL
-let leaderboard = [];
+// Key used in KV store
+const LEADERBOARD_KEY = 'reaction_leaderboard_v1';
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('.'));
 
-// Helper function to read leaderboard
-function readLeaderboard() {
-  return leaderboard;
+// Helper: read leaderboard from KV
+async function readLeaderboard() {
+  const data = await kv.get(LEADERBOARD_KEY);
+  return Array.isArray(data) ? data : [];
 }
 
-// Helper function to write leaderboard
-function writeLeaderboard(newLeaderboard) {
-  leaderboard = newLeaderboard;
+// Helper: write leaderboard to KV
+async function writeLeaderboard(newLeaderboard) {
+  await kv.set(LEADERBOARD_KEY, newLeaderboard);
   return true;
 }
 
 // GET /api/leaderboard - Get current leaderboard
-app.get('/api/leaderboard', (req, res) => {
-  const leaderboard = readLeaderboard();
-  res.json(leaderboard);
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const leaderboard = await readLeaderboard();
+    res.json(leaderboard);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to load leaderboard' });
+  }
 });
 
 // POST /api/leaderboard - Add new score
-app.post('/api/leaderboard', (req, res) => {
+app.post('/api/leaderboard', async (req, res) => {
   const { name, time } = req.body;
   
   if (!name || !time || typeof time !== 'number') {
     return res.status(400).json({ error: 'Name and time are required' });
   }
   
-  const leaderboard = readLeaderboard();
+  const leaderboard = await readLeaderboard();
   
   // Add new score
   const newScore = {
@@ -57,7 +61,7 @@ app.post('/api/leaderboard', (req, res) => {
   // Keep only top 10
   const top10 = leaderboard.slice(0, 10);
   
-  if (writeLeaderboard(top10)) {
+  if (await writeLeaderboard(top10)) {
     res.json({ success: true, leaderboard: top10 });
   } else {
     res.status(500).json({ error: 'Failed to save leaderboard' });
@@ -65,14 +69,14 @@ app.post('/api/leaderboard', (req, res) => {
 });
 
 // GET /api/check-record - Check if a time qualifies for leaderboard
-app.get('/api/check-record', (req, res) => {
+app.get('/api/check-record', async (req, res) => {
   const { time } = req.query;
   
   if (!time || isNaN(time)) {
     return res.status(400).json({ error: 'Valid time is required' });
   }
   
-  const leaderboard = readLeaderboard();
+  const leaderboard = await readLeaderboard();
   const timeNum = parseInt(time);
   
   // Check if time qualifies (top 10 or leaderboard has less than 10 entries)
