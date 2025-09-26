@@ -6,79 +6,319 @@
   <title>Reaction Time Game</title>
     
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-  header {
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 1rem 2rem;
-  position: fixed;
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  backdrop-filter: blur(6px);
-}
-
-  nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  gap: 2rem;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-nav a {
-  color: #eee;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1rem;
-  transition: color 0.3s ease;
-}
-
-nav a:hover {
-  color: #ffcc00;
-}
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
-      font-family: sans-serif;
-      background: #111;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #000000 0%, #0a0a1a 30%, #1a1a2e 70%, #000000 100%);
       color: white;
       text-align: center;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
-    #game {
-      display: none;
-      height: 80vh;
+
+    header {
+      background: rgba(0, 0, 0, 0.9);
+      padding: 1rem 2rem;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
       display: flex;
-      justify-content: center;
+      gap: 2rem;
+      justify-content: flex-start;
       align-items: center;
-      font-size: 2rem;
-      background-color: red;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.3s;
-      margin-top: 2rem;
     }
-    #play-again #start-btn {
-      display: none;
-      margin-top: 20px;
-      font-size: 1.2rem;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background: #ffcc00;
-      border: none;
-      border-radius: 5px;
-      color: #111;
-      font-weight: bold;
+
+    nav a {
+      color: #e0e6ed;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
     }
-     #start-screen {
+
+    nav a:hover {
+      color: #64b5f6;
+      transform: translateY(-1px);
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -5px;
+      left: 0;
+      background: linear-gradient(90deg, #64b5f6, #42a5f5);
+      transition: width 0.3s ease;
+    }
+
+    nav a:hover::after {
+      width: 100%;
+    }
+
+    #start-screen {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       padding: 2rem;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(10, 10, 26, 0.8) 100%);
+    }
+
+    #start-screen h1 {
+      font-size: 4rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #e0e6ed 0%, #64b5f6 50%, #42a5f5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 15px rgba(100, 181, 246, 0.2);
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.2)); }
+      to { filter: drop-shadow(0 0 20px rgba(100, 181, 246, 0.4)); }
+    }
+
+    #start-screen p {
+      font-size: 1.5rem;
+      color: #b0bec5;
+      margin-bottom: 2rem;
+      font-weight: 300;
+    }
+
+    #start-screen ul {
+      text-align: left;
+      max-width: 800px;
+      margin: 0 auto 3rem;
+      font-size: 1.4rem;
+      line-height: 1.8;
+      background: rgba(100, 181, 246, 0.1);
+      padding: 2.5rem;
+      border-radius: 20px;
+      border: 1px solid rgba(100, 181, 246, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    #start-screen li {
+      margin-bottom: 1rem;
+      color: #e0e6ed;
+    }
+
+    #start-screen strong {
+      color: #64b5f6;
+      font-weight: 600;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 1.2rem 3rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 25px rgba(100, 181, 246, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(100, 181, 246, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    #game {
+      display: flex;
+      height: 60vh;
+      width: 90vw;
+      max-width: 1200px;
+      justify-content: center;
+      align-items: center;
+      font-size: 3.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: 1rem auto;
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    #game::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+
+    #game:hover::before {
+      transform: translateX(100%);
+    }
+
+    #game.waiting {
+      background: linear-gradient(135deg, #333333 0%, #000000 100%);
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #game.ready {
+      background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+      color: #000000;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+      animation: pulse 0.5s ease-in-out;
+    }
+
+    #game.too-soon {
+      background: linear-gradient(135deg, #666666 0%, #333333 100%);
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    #game.done {
+      background: linear-gradient(135deg, #000000 0%, #333333 100%);
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    #play-again {
+      display: none;
+      margin-top: 0.5rem;
+      background: linear-gradient(135deg, #666666 0%, #333333 100%);
+      color: white;
+      box-shadow: 0 8px 25px rgba(102, 102, 102, 0.3);
+    }
+
+    #play-again:hover {
+      box-shadow: 0 15px 35px rgba(102, 102, 102, 0.4);
+    }
+
+    .game-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 1rem;
+      padding-top: 5rem;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(10, 10, 26, 0.8) 100%);
+    }
+    
+    .game-container.show {
+      display: flex;
+    }
+
+    .score-display {
+      font-size: 1.5rem;
+      color: #e0e6ed;
+      margin-bottom: 0.5rem;
+      margin-top: 0.5rem;
+      font-weight: 500;
+      text-shadow: 0 0 15px rgba(100, 181, 246, 0.3);
+      padding: 0.5rem 1.5rem;
+      background: rgba(100, 181, 246, 0.1);
+      border-radius: 15px;
+      border: 1px solid rgba(100, 181, 246, 0.2);
+    }
+
+    /* Remove unused modal styles */
+    #name-modal {
+      display: none;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      #start-screen h1 {
+        font-size: 2.5rem;
+      }
+      
+      #start-screen ul {
+        font-size: 1rem;
+        padding: 1.5rem;
+        max-width: 90%;
+      }
+      
+      #game {
+        font-size: 2.5rem;
+        width: 95vw;
+        height: 80vh;
+      }
+      
+      .btn {
+        padding: 1rem 2rem;
+        font-size: 1.2rem;
+      }
+    }
+    
+    @media (min-width: 1200px) {
+      #game {
+        font-size: 4rem;
+        height: 65vh;
+      }
+      
+      #start-screen h1 {
+        font-size: 5rem;
+      }
+      
+      #start-screen ul {
+        font-size: 1.6rem;
+        max-width: 1000px;
+      }
     }
   </style>
 </head>
@@ -95,174 +335,113 @@ nav a:hover {
   </header>
 
   <div id="start-screen">
-  <h1>Reaction Time Game</h1>
-  <p>Instructions:</p>
-  <ul style="text-align: left; max-width: 500px; margin: 0 auto; font-size: 1.3rem;">
-    <li>Click the <strong>Start</strong> button to begin.</li>
-    <li>Wait for the screen to turn <strong>green</strong>.</li>
-    <li>Click as fast as you can!</li>
-    <li>If you click too early, you'll have to restart.</li>
-  </ul>
-  <button id="start-btn" style="margin-top: 40px; font-size: 1.5rem; padding: 0.75rem 1.5rem;">Start Game</button>
-  
-  <!-- Leaderboard Section -->
-  <div id="leaderboard-section" style="margin-top: 40px; max-width: 500px; margin-left: auto; margin-right: auto;">
-    <h2 style="color: #ffcc00; margin-bottom: 20px;">🏆 Top 10 Leaderboard</h2>
-    <div id="leaderboard" style="background: rgba(0,0,0,0.7); padding: 20px; border-radius: 10px; text-align: left;">
-      <div id="leaderboard-loading">Loading leaderboard...</div>
-    </div>
+    <h1>⚡ Reaction Time Game</h1>
+    <p>Test your reflexes and see how fast you can react!</p>
+    <ul>
+      <li>Click the <strong>Start Game</strong> button to begin</li>
+      <li>Wait for the screen to turn <strong>green</strong></li>
+      <li>Click as fast as you can when it changes!</li>
+      <li>If you click too early, you'll have to restart</li>
+    </ul>
+    <button id="start-btn" class="btn">🚀 Start Game</button>
   </div>
-</div>
 
-
-  <div id="game">Wait for green...</div>
-  <button id="play-again" style="margin-top: 40px; font-size: 1.5rem; padding: 0.75rem 1.5rem;">Play Again</button>
-
-  <!-- Name Entry Modal -->
-  <div id="name-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: #222; padding: 40px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%;">
-      <h2 style="color: #ffcc00; margin-bottom: 20px;">🎉 New Record!</h2>
-      <p style="margin-bottom: 20px;">You made it to the leaderboard!</p>
-      <p id="record-time" style="color: #4CAF50; font-size: 1.2rem; margin-bottom: 20px;"></p>
-      <input type="text" id="player-name" placeholder="Enter your name" style="width: 100%; padding: 15px; font-size: 1.1rem; border: none; border-radius: 8px; margin-bottom: 20px; background: #333; color: white;">
-      <div>
-        <button id="save-record" style="background: #ffcc00; color: #000; padding: 12px 24px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-right: 10px;">Save Record</button>
-        <button id="skip-record" style="background: #666; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer;">Skip</button>
-      </div>
-    </div>
+  <div class="game-container">
+    <div class="score-display" id="score-display"></div>
+    <div id="game" class="waiting">Wait for green...</div>
+    <button id="play-again" class="btn">🔄 Play Again</button>
   </div>
+
 
   <script>
     const game = document.getElementById("game");
     const playAgainBtn = document.getElementById("play-again");
     const startScreen = document.getElementById("start-screen");
     const startBtn = document.getElementById("start-btn");
-    const leaderboard = document.getElementById("leaderboard");
-    const nameModal = document.getElementById("name-modal");
-    const playerNameInput = document.getElementById("player-name");
-    const recordTimeDisplay = document.getElementById("record-time");
-    const saveRecordBtn = document.getElementById("save-record");
-    const skipRecordBtn = document.getElementById("skip-record");
+    const scoreDisplay = document.getElementById("score-display");
+    const gameContainer = document.querySelector(".game-container");
 
     let startTime, timeoutID, gameState = "waiting";
     let currentReactionTime = 0;
-
-    // Load leaderboard on page load
-    loadLeaderboard();
+    let bestTime = null;
+    
+    // Safely get best time from localStorage
+    try {
+      bestTime = localStorage.getItem('bestReactionTime') || null;
+    } catch (e) {
+      console.warn('localStorage not available:', e);
+      bestTime = null;
+    }
 
     function getRandomDelay() {
       return Math.floor(Math.random() * 3500) + 1500;
     }
 
+    function updateScoreDisplay() {
+      if (bestTime) {
+        scoreDisplay.textContent = `🏆 Best Time: ${bestTime}ms`;
+        scoreDisplay.style.display = "block";
+      } else {
+        scoreDisplay.style.display = "none";
+      }
+    }
+
     function startGame() {
       playAgainBtn.style.display = "none";
       gameState = "waiting";
-      game.textContent = "Wait for green...";
-      game.style.backgroundColor = "red";
+      game.className = "waiting";
+      game.textContent = "⏳ Wait for green...";
+      updateScoreDisplay();
 
       timeoutID = setTimeout(() => {
         gameState = "ready";
-        game.textContent = "CLICK!";
-        game.style.backgroundColor = "green";
+        game.className = "ready";
+        game.textContent = "🚀 CLICK NOW!";
         startTime = new Date();
       }, getRandomDelay());
     }
 
-    async function loadLeaderboard() {
-      try {
-        const response = await fetch('https://that-random-site.vercel.app/api/leaderboard');
-        const leaderboardData = await response.json();
-        displayLeaderboard(leaderboardData);
-      } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        leaderboard.innerHTML = '<div style="color: #ff6b6b;">Error loading leaderboard</div>';
-      }
-    }
-
-    function displayLeaderboard(data) {
-      if (data.length === 0) {
-        leaderboard.innerHTML = '<div style="text-align: center; color: #888;">No records yet. Be the first!</div>';
-        return;
-      }
-
-      let html = '';
-      data.forEach((entry, index) => {
-        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
-        const date = new Date(entry.date).toLocaleDateString();
-        html += `
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333;">
-            <span style="color: #ffcc00; font-weight: bold;">${medal}</span>
-            <span style="color: white;">${entry.name}</span>
-            <span style="color: #4CAF50; font-weight: bold;">${entry.time}ms</span>
-            <span style="color: #888; font-size: 0.8rem;">${date}</span>
-          </div>
-        `;
-      });
-      leaderboard.innerHTML = html;
-    }
-
-    async function checkIfRecord(time) {
-      try {
-        const response = await fetch(`https://that-random-site.vercel.app/api/check-record?time=${time}`);
-        const result = await response.json();
-        return result.qualifies;
-      } catch (error) {
-        console.error('Error checking record:', error);
-        return false;
-      }
-    }
-
-    async function saveRecord(name, time) {
-      try {
-        const response = await fetch('https://that-random-site.vercel.app/api/leaderboard', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name, time })
-        });
-        
-        if (response.ok) {
-          await loadLeaderboard(); // Refresh leaderboard
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error('Error saving record:', error);
-        return false;
-      }
-    }
-
-    function showNameModal(time) {
-      recordTimeDisplay.textContent = `Your time: ${time}ms`;
-      nameModal.style.display = 'flex';
-      playerNameInput.focus();
-    }
-
-    function hideNameModal() {
-      nameModal.style.display = 'none';
-      playerNameInput.value = '';
+    function getReactionRating(time) {
+      if (time < 200) return { text: "🏆 Lightning Fast!", color: "#ffffff" };
+      if (time < 250) return { text: "⚡ Excellent!", color: "#cccccc" };
+      if (time < 300) return { text: "🔥 Great!", color: "#999999" };
+      if (time < 400) return { text: "👍 Good!", color: "#666666" };
+      if (time < 500) return { text: "👌 Average", color: "#333333" };
+      return { text: "🐌 Keep practicing!", color: "#000000" };
     }
 
     game.addEventListener("click", async () => {
       if (gameState === "waiting") {
         clearTimeout(timeoutID);
-        game.textContent = "Too soon! Click Play Again to try again.";
-        game.style.backgroundColor = "orange";
+        game.className = "too-soon";
+        game.textContent = "❌ Too soon! Click Play Again to try again.";
         gameState = "tooSoon";
         playAgainBtn.style.display = "inline-block";
       } else if (gameState === "ready") {
         const reactionTime = new Date() - startTime;
         currentReactionTime = reactionTime;
-        game.textContent = `Your reaction time: ${reactionTime} ms. Click Play Again to try again.`;
-        game.style.backgroundColor = "#222";
+        
+        const rating = getReactionRating(reactionTime);
+        game.className = "done";
+        game.innerHTML = `
+          <div style="text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 1rem; color: ${rating.color};">${rating.text}</div>
+            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;">${reactionTime}ms</div>
+            <div style="font-size: 1rem; opacity: 0.8;">Click Play Again to try again</div>
+          </div>
+        `;
         gameState = "done";
         playAgainBtn.style.display = "inline-block";
 
-        // Check if this is a record
-        const isRecord = await checkIfRecord(reactionTime);
-        if (isRecord) {
-          showNameModal(reactionTime);
+        // Update best time
+        if (!bestTime || reactionTime < bestTime) {
+          bestTime = reactionTime;
+          try {
+            localStorage.setItem('bestReactionTime', bestTime);
+          } catch (e) {
+            console.warn('Could not save to localStorage:', e);
+          }
+          updateScoreDisplay();
         }
       }
     });
@@ -270,35 +449,12 @@ nav a:hover {
     playAgainBtn.addEventListener("click", startGame);
     startBtn.addEventListener("click", () => {
       startScreen.style.display = "none";
-      game.style.display = "flex";
+      gameContainer.classList.add('show');
       startGame();
     });
 
-    saveRecordBtn.addEventListener("click", async () => {
-      const name = playerNameInput.value.trim();
-      if (!name) {
-        alert('Please enter your name!');
-        return;
-      }
-
-      const success = await saveRecord(name, currentReactionTime);
-      if (success) {
-        hideNameModal();
-        alert('Record saved successfully!');
-      } else {
-        alert('Failed to save record. Please try again.');
-      }
-    });
-
-    skipRecordBtn.addEventListener("click", hideNameModal);
-
-    // Allow Enter key to save record
-    playerNameInput.addEventListener("keypress", (e) => {
-      if (e.key === 'Enter') {
-        saveRecordBtn.click();
-      }
-    });
-
+    // Initialize
+    updateScoreDisplay();
   </script>
 </body>
 </html>
