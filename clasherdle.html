@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Clasherdle - Clash Royale Guess</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .clasherdle-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      padding-top: 6rem;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(10, 10, 26, 0.8) 100%);
+      gap: 1.25rem;
+    }
+
+    .game-title {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffd700 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 15px rgba(255, 107, 53, 0.3);
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+
+    .game-subtitle {
+      font-size: 1.1rem;
+      color: #b0bec5;
+      margin: 0 0 1rem 0;
+      text-align: center;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 700px;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 0.9rem 1rem;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .btn {
+      padding: 0.9rem 1.25rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+      color: #ffffff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .btn:hover { opacity: 0.95; transform: translateY(-1px); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .panel {
+      background: rgba(100, 181, 246, 0.08);
+      border: 1px solid rgba(100, 181, 246, 0.2);
+      border-radius: 16px;
+      padding: 1rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .panel h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.2rem;
+      color: #e0e6ed;
+    }
+
+    .feedback-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+    .feedback-row:last-child { border-bottom: none; }
+
+    .attr-label { color: #b0bec5; }
+    .attr-value { color: #ffffff; font-weight: 600; }
+
+    .pill { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 999px; font-size: 0.85rem; }
+    .pill.correct { background: #2e7d32; color: #fff; }
+    .pill.partial { background: #ef6c00; color: #fff; }
+    .pill.wrong { background: #616161; color: #fff; }
+    .pill.info { background: #1565c0; color: #fff; }
+
+    .targets { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+    .history-item { display: grid; grid-template-columns: 1fr 90px 90px 1fr; gap: 0.5rem; padding: 0.5rem; border-radius: 10px; background: rgba(255,255,255,0.06); }
+    .history-item + .history-item { margin-top: 0.5rem; }
+
+    @media (max-width: 768px) {
+      .game-title { font-size: 2rem; }
+      .layout { grid-template-columns: 1fr; }
+      .history-item { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="reaction.html">Reaction Game</a></li>
+        <li><a href="clasherdle.html">Clasherdle</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="clasherdle-container">
+    <h1 class="game-title">Clasherdle</h1>
+    <p class="game-subtitle">Search and guess the card. Get hints on rarity, elixir, type, and targets.</p>
+
+    <div class="search-bar">
+      <input id="cardSearch" class="search-input" list="cardOptions" placeholder="Search Clash Royale card..." />
+      <datalist id="cardOptions"></datalist>
+      <button class="btn" id="guessBtn">Guess</button>
+      <button class="btn" id="newGameBtn" style="background: linear-gradient(135deg,#42a5f5 0%,#64b5f6 100%);">New Game</button>
+      <span id="guessCounter" style="margin-left:auto;color:#b0bec5;font-weight:600;">Guesses: 0/5</span>
+    </div>
+
+    <div class="layout">
+      <div class="panel" id="feedbackPanel">
+        <h3>Feedback</h3>
+        <div class="feedback-row">
+          <div class="attr-label">Selected</div>
+          <div class="attr-value" id="fbName">—</div>
+        </div>
+        <div class="feedback-row">
+          <div class="attr-label">Rarity</div>
+          <div class="attr-value" id="fbRarity">—</div>
+        </div>
+        <div class="feedback-row">
+          <div class="attr-label">Elixir</div>
+          <div class="attr-value" id="fbElixir">—</div>
+        </div>
+        <div class="feedback-row">
+          <div class="attr-label">Type</div>
+          <div class="attr-value" id="fbType">—</div>
+        </div>
+        <div class="feedback-row">
+          <div class="attr-label">Targets</div>
+          <div class="attr-value targets" id="fbTargets">—</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Guess History</h3>
+        <div id="history"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Minimal Clash Royale card dataset for prototype
+    const cards = [
+      { name: 'Knight', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['ground'] },
+      { name: 'Archers', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Arrows', rarity: 'Common', elixir: 3, type: 'Spell', targets: ['air','ground'] },
+      { name: 'Zap', rarity: 'Common', elixir: 2, type: 'Spell', targets: ['air','ground'] },
+      { name: 'Goblins', rarity: 'Common', elixir: 2, type: 'Troop', targets: ['ground'] },
+      { name: 'Minions', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Valkyrie', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['ground'] },
+      { name: 'Hog Rider', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['buildings'] },
+      { name: 'Inferno Tower', rarity: 'Rare', elixir: 5, type: 'Building', targets: ['air','ground'] },
+      { name: 'Rocket', rarity: 'Rare', elixir: 6, type: 'Spell', targets: ['air','ground'] },
+      { name: 'Wizard', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Baby Dragon', rarity: 'Epic', elixir: 4, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Balloon', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['buildings'] },
+      { name: 'PEKKA', rarity: 'Epic', elixir: 7, type: 'Troop', targets: ['ground'] },
+      { name: 'Golem', rarity: 'Epic', elixir: 8, type: 'Troop', targets: ['buildings'] },
+      { name: 'Mega Minion', rarity: 'Rare', elixir: 3, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Cannon', rarity: 'Common', elixir: 3, type: 'Building', targets: ['ground'] },
+      { name: 'Goblin Barrel', rarity: 'Epic', elixir: 3, type: 'Spell', targets: ['buildings'] },
+      { name: 'Tornado', rarity: 'Epic', elixir: 3, type: 'Spell', targets: ['air','ground'] },
+      { name: 'Musketeer', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['air','ground'] }
+    ];
+
+    let secret = null;
+    let guessCount = 0;
+    const maxGuesses = 5;
+    let gameOver = false;
+    const guessCounterEl = () => document.getElementById('guessCounter');
+    const el = {
+      datalist: document.getElementById('cardOptions'),
+      input: document.getElementById('cardSearch'),
+      guessBtn: document.getElementById('guessBtn'),
+      newBtn: document.getElementById('newGameBtn'),
+      fbName: document.getElementById('fbName'),
+      fbRarity: document.getElementById('fbRarity'),
+      fbElixir: document.getElementById('fbElixir'),
+      fbType: document.getElementById('fbType'),
+      fbTargets: document.getElementById('fbTargets'),
+      history: document.getElementById('history')
+    };
+
+    function init() {
+      // Populate datalist
+      el.datalist.innerHTML = cards
+        .map(c => `<option value="${c.name}"></option>`)
+        .join('');
+      // Pick a random secret card
+      secret = cards[Math.floor(Math.random() * cards.length)];
+      // Reset UI
+      el.input.value = '';
+      clearFeedback();
+      el.history.innerHTML = '';
+      guessCount = 0;
+      gameOver = false;
+      updateGuessCounter();
+      // console.log('Secret:', secret);
+    }
+
+    function clearFeedback() {
+      el.fbName.textContent = '—';
+      el.fbRarity.textContent = '—';
+      el.fbElixir.textContent = '—';
+      el.fbType.textContent = '—';
+      el.fbTargets.innerHTML = '—';
+    }
+
+    function pill(text, cls) {
+      return `<span class="pill ${cls}">${text}</span>`;
+    }
+
+    function handleGuess() {
+      if (gameOver) return;
+      const name = (el.input.value || '').trim();
+      const guess = cards.find(c => c.name.toLowerCase() === name.toLowerCase());
+      if (!guess) { alert('Please pick a valid card from the list.'); return; }
+
+      // Update feedback header
+      el.fbName.textContent = guess.name;
+
+      // Rarity
+      const rarityMatch = guess.rarity === secret.rarity;
+      el.fbRarity.innerHTML = `${guess.rarity} ${rarityMatch ? pill('Correct','correct') : pill('Wrong','wrong')}`;
+
+      // Elixir
+      let elixirHtml = `${guess.elixir}`;
+      if (guess.elixir === secret.elixir) {
+        elixirHtml += ` ${pill('Correct','correct')}`;
+      } else if (guess.elixir < secret.elixir) {
+        elixirHtml += ` ${pill('Higher','info')}`;
+      } else {
+        elixirHtml += ` ${pill('Lower','info')}`;
+      }
+      el.fbElixir.innerHTML = elixirHtml;
+
+      // Type
+      const typeMatch = guess.type === secret.type;
+      el.fbType.innerHTML = `${guess.type} ${typeMatch ? pill('Correct','correct') : pill('Wrong','wrong')}`;
+
+      // Targets
+      const overlap = guess.targets.filter(t => secret.targets.includes(t));
+      const exactTargets = overlap.length === guess.targets.length && overlap.length === secret.targets.length;
+      let targetsHtml = guess.targets.map(t => pill(t, 'info')).join(' ');
+      targetsHtml += ' ' + (exactTargets ? pill('Exact','correct') : (overlap.length ? pill('Partial','partial') : pill('None','wrong')));
+      el.fbTargets.innerHTML = targetsHtml;
+
+      // History item
+      const hist = document.createElement('div');
+      hist.className = 'history-item';
+      hist.innerHTML = `
+        <div><strong>${guess.name}</strong></div>
+        <div>${rarityMatch ? pill('Rarity','correct') : pill('Rarity','wrong')}</div>
+        <div>${guess.elixir === secret.elixir ? pill('Elixir','correct') : pill(guess.elixir < secret.elixir ? 'Higher' : 'Lower', 'info')}</div>
+        <div class="targets">${overlap.length ? overlap.map(t => pill(t,'partial')).join(' ') : pill('No match','wrong')}</div>
+      `;
+      el.history.prepend(hist);
+
+      // Win condition (all attributes correct)
+      if (rarityMatch && guess.elixir === secret.elixir && typeMatch && exactTargets) {
+        gameOver = true;
+        setTimeout(() => alert(`Nice! You found it: ${secret.name}`), 50);
+        return;
+      }
+
+      // Guess limit check
+      guessCount += 1;
+      updateGuessCounter();
+      if (guessCount >= maxGuesses) {
+        gameOver = true;
+        setTimeout(() => alert(`Out of guesses! The card was: ${secret.name}`), 50);
+      }
+    }
+
+    function updateGuessCounter() {
+      const elc = guessCounterEl();
+      if (elc) elc.textContent = `Guesses: ${guessCount}/${maxGuesses}`;
+    }
+
+    el.guessBtn.addEventListener('click', handleGuess);
+    el.newBtn.addEventListener('click', init);
+    el.input.addEventListener('keydown', (e) => { if (e.key === 'Enter') handleGuess(); });
+
+    init();
+  </script>
+</body>
+</html>

@@ -70,17 +70,18 @@ nav a:hover::after {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   min-height: 100vh;
   padding: 2rem;
-  padding-top: 6rem;
+  padding-top: 4rem;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(10, 10, 26, 0.8) 100%);
+  position: relative;
 }
 
-.home-container h1 {
-  font-size: 2.5rem;
+.site-title {
+  font-size: 3.5rem;
   font-weight: 700;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   background: linear-gradient(135deg, #e0e6ed 0%, #64b5f6 50%, #42a5f5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -89,15 +90,31 @@ nav a:hover::after {
   animation: glow 3s ease-in-out infinite alternate;
 }
 
+.quote-section {
+  position: absolute;
+  top: 10rem;
+  left: 2rem;
+  max-width: 400px;
+}
+
+.quote-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #b0bec5;
+  opacity: 0.9;
+  text-align: left;
+  margin: 0 0 1.5rem 0;
+}
+
 @keyframes glow {
   from { filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.2)); }
   to { filter: drop-shadow(0 0 20px rgba(100, 181, 246, 0.4)); }
 }
 
 #quote {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-style: italic;
-  max-width: 400px;
   line-height: 1.5;
   color: #b0bec5;
   background: rgba(100, 181, 246, 0.1);
@@ -106,6 +123,7 @@ nav a:hover::after {
   border: 1px solid rgba(100, 181, 246, 0.2);
   backdrop-filter: blur(10px);
   margin: 0;
+  text-align: left;
 }
 /* Contact page styles */
 .contact-container {
@@ -218,8 +236,18 @@ button:hover::before {
 
 /* Responsive design */
 @media (max-width: 768px) {
-  .home-container h1 {
-    font-size: 2rem;
+  .site-title {
+    font-size: 2.5rem;
+  }
+  
+  .quote-section {
+    top: 8rem;
+    left: 1rem;
+    max-width: 90%;
+  }
+  
+  .quote-title {
+    font-size: 1.4rem;
   }
   
   .contact-container h1 {
@@ -227,9 +255,8 @@ button:hover::before {
   }
   
   #quote {
-    font-size: 1.2rem;
+    font-size: 1rem;
     padding: 1rem;
-    max-width: 90%;
   }
   
   .form-wrapper {
@@ -244,8 +271,12 @@ button:hover::before {
 }
 
 @media (min-width: 1200px) {
-  .home-container h1 {
-    font-size: 3rem;
+  .site-title {
+    font-size: 4.5rem;
+  }
+  
+  .quote-title {
+    font-size: 2.2rem;
   }
   
   .contact-container h1 {
@@ -253,7 +284,7 @@ button:hover::before {
   }
   
   #quote {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
     max-width: 500px;
   }
   
