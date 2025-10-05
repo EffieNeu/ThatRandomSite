@@ -338,7 +338,7 @@
   </header>
 
   <div id="start-screen">
-    <h1>⚡ Reaction Time Game</h1>
+    <h1>Reaction Time Game</h1>
     <p>Test your reflexes and see how fast you can react!</p>
     <ul>
       <li>Click the <strong>Start Game</strong> button to begin</li>
@@ -346,13 +346,13 @@
       <li>Click as fast as you can when it changes!</li>
       <li>If you click too early, you'll have to restart</li>
     </ul>
-    <button id="start-btn" class="btn">🚀 Start Game</button>
+    <button id="start-btn" class="btn">Start Game</button>
   </div>
 
   <div class="game-container">
     <div class="score-display" id="score-display"></div>
     <div id="game" class="waiting">Wait for green...</div>
-    <button id="play-again" class="btn">🔄 Play Again</button>
+    <button id="play-again" class="btn">Play Again</button>
   </div>
 
 
@@ -382,7 +382,7 @@
 
     function updateScoreDisplay() {
       if (bestTime) {
-        scoreDisplay.textContent = `🏆 Best Time: ${bestTime}ms`;
+        scoreDisplay.textContent = `Best Time: ${bestTime}ms`;
         scoreDisplay.style.display = "block";
       } else {
         scoreDisplay.style.display = "none";
@@ -393,24 +393,24 @@
       playAgainBtn.style.display = "none";
       gameState = "waiting";
       game.className = "waiting";
-      game.textContent = "⏳ Wait for green...";
+      game.textContent = "Wait for green...";
       updateScoreDisplay();
 
       timeoutID = setTimeout(() => {
         gameState = "ready";
         game.className = "ready";
-        game.textContent = "🚀 CLICK NOW!";
+        game.textContent = "CLICK NOW!";
         startTime = new Date();
       }, getRandomDelay());
     }
 
     function getReactionRating(time) {
-      if (time < 200) return { text: "🏆 Lightning Fast!", color: "#ffffff" };
-      if (time < 250) return { text: "⚡ Excellent!", color: "#cccccc" };
-      if (time < 300) return { text: "🔥 Great!", color: "#999999" };
-      if (time < 400) return { text: "👍 Good!", color: "#666666" };
-      if (time < 500) return { text: "👌 Average", color: "#333333" };
-      return { text: "🐌 Keep practicing!", color: "#000000" };
+      if (time < 200) return { text: "Lightning Fast!", color: "#ffffff" };
+      if (time < 250) return { text: "Excellent!", color: "#cccccc" };
+      if (time < 300) return { text: "Great!", color: "#999999" };
+      if (time < 400) return { text: "Good!", color: "#666666" };
+      if (time < 500) return { text: "Average", color: "#333333" };
+      return { text: "Slow", color: "#000000" };
     }
 
     game.addEventListener("click", async () => {
