@@ -181,28 +181,36 @@
   </div>
 
   <script>
-    // Minimal Clash Royale card dataset for prototype
+    // Clash Royale card dataset
     const cards = [
+      // Common
+      { name: 'Skeletons', rarity: 'Common', elixir: 1, type: 'Troop', targets: ['ground'] },
+      { name: 'Electro Spirit', rarity: 'Common', elixir: 1, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Fire Spirit', rarity: 'Common', elixir: 1, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Ice Spirit', rarity: 'Common', elixir: 1, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Heal Spirit', rarity: 'Common', elixir: 1, type: 'Troop', targets: ['air','ground'] },    
+      { name: 'Zap', rarity: 'Common', elixir: 2, type: 'Spell', targets: ['air','ground'] },
+      { name: 'Goblins', rarity: 'Common', elixir: 2, type: 'Troop', targets: ['ground'] },
       { name: 'Knight', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['ground'] },
       { name: 'Archers', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['air','ground'] },
       { name: 'Arrows', rarity: 'Common', elixir: 3, type: 'Spell', targets: ['air','ground'] },
-      { name: 'Zap', rarity: 'Common', elixir: 2, type: 'Spell', targets: ['air','ground'] },
-      { name: 'Goblins', rarity: 'Common', elixir: 2, type: 'Troop', targets: ['ground'] },
       { name: 'Minions', rarity: 'Common', elixir: 3, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Cannon', rarity: 'Common', elixir: 3, type: 'Building', targets: ['ground'] },
+      // Rare 
+      { name: 'Mega Minion', rarity: 'Rare', elixir: 3, type: 'Troop', targets: ['air','ground'] },
       { name: 'Valkyrie', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['ground'] },
       { name: 'Hog Rider', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['buildings'] },
+      { name: 'Musketeer', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['air','ground'] },
       { name: 'Inferno Tower', rarity: 'Rare', elixir: 5, type: 'Building', targets: ['air','ground'] },
       { name: 'Rocket', rarity: 'Rare', elixir: 6, type: 'Spell', targets: ['air','ground'] },
-      { name: 'Wizard', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['air','ground'] },
-      { name: 'Baby Dragon', rarity: 'Epic', elixir: 4, type: 'Troop', targets: ['air','ground'] },
-      { name: 'Balloon', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['buildings'] },
-      { name: 'PEKKA', rarity: 'Epic', elixir: 7, type: 'Troop', targets: ['ground'] },
-      { name: 'Golem', rarity: 'Epic', elixir: 8, type: 'Troop', targets: ['buildings'] },
-      { name: 'Mega Minion', rarity: 'Rare', elixir: 3, type: 'Troop', targets: ['air','ground'] },
-      { name: 'Cannon', rarity: 'Common', elixir: 3, type: 'Building', targets: ['ground'] },
+      // Epic 
       { name: 'Goblin Barrel', rarity: 'Epic', elixir: 3, type: 'Spell', targets: ['buildings'] },
       { name: 'Tornado', rarity: 'Epic', elixir: 3, type: 'Spell', targets: ['air','ground'] },
-      { name: 'Musketeer', rarity: 'Rare', elixir: 4, type: 'Troop', targets: ['air','ground'] }
+      { name: 'Baby Dragon', rarity: 'Epic', elixir: 4, type: 'Troop', targets: ['air','ground'] },
+      { name: 'Balloon', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['buildings'] },
+      { name: 'Wizard', rarity: 'Epic', elixir: 5, type: 'Troop', targets: ['air','ground'] },
+      { name: 'PEKKA', rarity: 'Epic', elixir: 7, type: 'Troop', targets: ['ground'] },
+      { name: 'Golem', rarity: 'Epic', elixir: 8, type: 'Troop', targets: ['buildings'] }
     ];
 
     let secret = null;
