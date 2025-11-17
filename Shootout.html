@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hockey Shootout</title>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9967648505755481"
+     crossorigin="anonymous"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #000000 0%, #0a0a1a 30%, #1a1a2e 70%, #000000 100%);
+      color: rgb(255, 255, 255);
+      text-align: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: rgba(0, 0, 0, 0.9);
+      padding: 1rem 2rem;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    nav ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      gap: 2rem;
+      justify-content: flex-start;
+      align-items: center;
+    }
+
+    nav a {
+      color: #e0e6ed;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    nav a:hover {
+      color: #64b5f6;
+      transform: translateY(-1px);
+    }
+
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: -5px;
+      left: 0;
+      background: linear-gradient(90deg, #64b5f6, #42a5f5);
+      transition: width 0.3s ease;
+    }
+
+    nav a:hover::after {
+      width: 100%;
+    }
+
+    .game-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      padding-top: 6rem;
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(10, 10, 26, 0.8) 100%);
+    }
+
+    .game-title {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #e0e6ed 0%, #64b5f6 50%, #42a5f5 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 15px rgba(100, 181, 246, 0.2);
+      animation: glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 10px rgba(100, 181, 246, 0.2)); }
+      to { filter: drop-shadow(0 0 20px rgba(100, 181, 246, 0.4)); }
+    }
+
+    .score-display {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #e0e6ed;
+    }
+
+    .score-item {
+      padding: 0.5rem 1.5rem;
+      background: rgba(100, 181, 246, 0.1);
+      border-radius: 15px;
+      border: 1px solid rgba(100, 181, 246, 0.2);
+    }
+
+    .lives-display {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: #ff6b6b;
+      font-weight: 600;
+    }
+
+    #gameCanvas {
+      border: 3px solid rgba(100, 181, 246, 0.3);
+      border-radius: 15px;
+      background: linear-gradient(180deg, #1a3a52 0%, #0d1b2a 50%, #1a3a52 100%);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+      cursor: crosshair;
+    }
+
+    .instructions {
+      margin-top: 1.5rem;
+      padding: 1rem 2rem;
+      background: rgba(100, 181, 246, 0.1);
+      border-radius: 15px;
+      border: 1px solid rgba(100, 181, 246, 0.2);
+      max-width: 600px;
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #b0bec5;
+    }
+
+    .instructions strong {
+      color: #64b5f6;
+    }
+
+    .game-over-screen {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .game-over-screen.show {
+      display: flex;
+    }
+
+    .game-over-content {
+      text-align: center;
+      padding: 3rem;
+      background: rgba(100, 181, 246, 0.1);
+      border-radius: 20px;
+      border: 2px solid rgba(100, 181, 246, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    .game-over-content h2 {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      color: #ff6b6b;
+    }
+
+    .game-over-content p {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      color: #e0e6ed;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 1.2rem 3rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+      color: #ffffff;
+      box-shadow: 0 8px 25px rgba(100, 181, 246, 0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 35px rgba(100, 181, 246, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 768px) {
+      .game-title {
+        font-size: 2rem;
+      }
+      
+      .score-display {
+        font-size: 1.2rem;
+        gap: 1rem;
+      }
+
+      #gameCanvas {
+        width: 95vw;
+        height: auto;
+      }
+
+      .instructions {
+        font-size: 0.9rem;
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="reaction.html">Reaction Game</a></li>
+        <li><a href="clasherdle.html">Clasherdle</a></li>
+        <li><a href="Shootout.html">Hockey Shootout</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="game-container">
+    <h1 class="game-title">Hockey Shootout</h1>
+    
+    <div class="score-display">
+      <div class="score-item">Score: <span id="score">0</span></div>
+      <div class="score-item">High Score: <span id="highScore">0</span></div>
+    </div>
+    
+    <div class="lives-display">Lives: <span id="lives">3</span></div>
+    
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div class="instructions">
+      <strong>Controls:</strong> <strong>W/Up Arrow</strong> to accelerate forward. 
+      <strong>A/D</strong> or <strong>Left/Right</strong> to strafe. <strong>Mouse</strong> to aim, <strong>Spacebar</strong> or <strong>Click</strong> to shoot. 
+      Once moving, you can't stop! You'll reset to start after each shot.
+    </div>
+  </div>
+
+  <div class="game-over-screen" id="gameOverScreen">
+    <div class="game-over-content">
+      <h2>Game Over!</h2>
+      <p>Final Score: <span id="finalScore">0</span></p>
+      <button class="btn" id="playAgainBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const highScoreEl = document.getElementById('highScore');
+    const livesEl = document.getElementById('lives');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalScoreEl = document.getElementById('finalScore');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // Game state
+    let score = 0;
+    let lives = 3;
+    let highScore = 0;
+    let gameRunning = true;
+
+    // Load high score
+    try {
+      highScore = parseInt(localStorage.getItem('hockeyHighScore') || '0');
+      highScoreEl.textContent = highScore;
+    } catch (e) {
+      console.warn('localStorage not available');
+    }
+
+    // Player
+    const startX = canvas.width / 2;
+    const startY = canvas.height - 40;
+    
+    const player = {
+      x: startX,
+      y: startY,
+      width: 40,
+      height: 20,
+      forwardVelocity: 0, // Forward momentum (toward goal, negative Y)
+      minForwardSpeed: 1.5, // Minimum speed once moving (can't stop)
+      maxForwardSpeed: 3, // Reduced max speed
+      acceleration: 0.15, // Slower acceleration
+      friction: 0.98, // Very low friction (ice-like, but maintains minimum speed)
+      strafeSpeed: 2, // Slower strafe speed
+      aimAngle: 0 // in radians, 0 = straight up
+    };
+
+    // Goalie
+    const goalie = {
+      x: canvas.width / 2,
+      y: 30,
+      width: 80,
+      height: 30,
+      targetX: canvas.width / 2,
+      reactionDelay: 500, // milliseconds
+      maxSpeed: 3,
+      currentSpeed: 0,
+      trackingPuck: false // Whether goalie is tracking puck or player
+    };
+    
+    // Goal area bounds (same as goal area)
+    const goalLeft = canvas.width / 2 - 100;
+    const goalRight = canvas.width / 2 + 100;
+
+    // Puck
+    let puck = null;
+
+    // Keys
+    const keys = {
+      left: false,
+      right: false,
+      forward: false,
+      brake: false,
+      space: false
+    };
+
+    // Event listeners
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        keys.left = true;
+        e.preventDefault();
+      }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        keys.right = true;
+        e.preventDefault();
+      }
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        keys.forward = true;
+        e.preventDefault();
+      }
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        keys.brake = true;
+        e.preventDefault();
+      }
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        keys.space = true;
+        e.preventDefault();
+        shoot();
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keys.right = false;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') keys.forward = false;
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') keys.brake = false;
+      if (e.key === ' ' || e.key === 'Spacebar') keys.space = false;
+    });
+
+    canvas.addEventListener('click', () => {
+      if (gameRunning && !puck) {
+        shoot();
+      }
+    });
+
+    // Mouse position for aiming
+    let mouseX = canvas.width / 2;
+    let mouseY = canvas.height / 2;
+    let useMouseAim = false;
+    let targetAimAngle = 0; // Target angle for smooth interpolation
+    const aimSmoothing = 0.15; // Lower = smoother but slower response
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      mouseX = (e.clientX - rect.left) * scaleX;
+      mouseY = (e.clientY - rect.top) * scaleY;
+      useMouseAim = true;
+      
+      // Calculate target angle from mouse position
+      const dx = mouseX - player.x;
+      const dy = mouseY - player.y;
+      let newAngle = Math.atan2(dy, dx) - Math.PI / 2;
+      newAngle = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, newAngle));
+      targetAimAngle = newAngle;
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      useMouseAim = false;
+    });
+
+    // Track goalie reaction timeout
+    let goalieReactionTimeout = null;
+
+    function shoot() {
+      if (!gameRunning || puck) return;
+
+      // Use current smoothed aim angle (already calculated in update loop)
+      // No need to recalculate here
+
+      // Create puck - angle 0 is straight up
+      const speed = 8;
+      puck = {
+        x: player.x,
+        y: player.y - player.height / 2 - 10,
+        radius: 8,
+        vx: Math.sin(player.aimAngle) * speed,
+        vy: -Math.cos(player.aimAngle) * speed,
+        speed: speed
+      };
+
+      // Clear any existing timeout
+      if (goalieReactionTimeout) {
+        clearTimeout(goalieReactionTimeout);
+      }
+
+      // Goalie starts tracking puck after reaction delay
+      goalie.trackingPuck = false;
+      goalieReactionTimeout = setTimeout(() => {
+        goalie.trackingPuck = true; // Start tracking puck after reaction delay
+      }, goalie.reactionDelay);
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      // Update player forward momentum (ice physics - constant motion)
+      if (keys.forward) {
+        // Accelerate forward (toward goal, negative Y direction)
+        player.forwardVelocity = Math.min(player.forwardVelocity + player.acceleration, player.maxForwardSpeed);
+      } else {
+        // Natural friction - slow down gradually but maintain minimum speed once moving
+        player.forwardVelocity *= player.friction;
+        // Once you start moving, you can't stop - maintain minimum speed
+        if (player.forwardVelocity > 0 && player.forwardVelocity < player.minForwardSpeed) {
+          player.forwardVelocity = player.minForwardSpeed;
+        }
+      }
+      
+      // Move player forward based on velocity
+      player.y -= player.forwardVelocity;
+      
+      // Strafe left/right (sideways movement)
+      if (keys.left && player.x > player.width / 2) {
+        player.x -= player.strafeSpeed;
+      }
+      if (keys.right && player.x < canvas.width - player.width / 2) {
+        player.x += player.strafeSpeed;
+      }
+      
+      // Check if player went out of bounds (off the map)
+      const playerHalfWidth = player.width / 2;
+      const playerHalfHeight = player.height / 2;
+      if (player.x < -playerHalfWidth || player.x > canvas.width + playerHalfWidth ||
+          player.y < -playerHalfHeight || player.y > canvas.height + playerHalfHeight) {
+        // Player went off the map - lose a life
+        lives--;
+        livesEl.textContent = lives;
+        resetPlayerPosition();
+        
+        if (lives <= 0) {
+          endGame();
+        }
+        return; // Exit early
+      }
+      
+      // Check if player entered goalie area (goal area)
+      const goalAreaTop = 0;
+      const goalAreaBottom = 60; // Height of goal area
+      if (player.y < goalAreaBottom && 
+          player.x >= goalLeft - playerHalfWidth && 
+          player.x <= goalRight + playerHalfWidth) {
+        // Player entered goal area - lose a life
+        lives--;
+        livesEl.textContent = lives;
+        resetPlayerPosition();
+        
+        if (lives <= 0) {
+          endGame();
+        }
+        return; // Exit early
+      }
+
+      // Update aim angle - use mouse if available, otherwise no arrow key aiming
+      // (Arrow keys now used for movement)
+      if (!useMouseAim) {
+        // Keep current aim angle when not using mouse
+        player.aimAngle = targetAimAngle;
+      } else {
+        // Smooth interpolation for mouse aiming
+        player.aimAngle += (targetAimAngle - player.aimAngle) * aimSmoothing;
+      }
+      
+      // Ensure angle stays within bounds
+      player.aimAngle = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.aimAngle));
+
+      // Update goalie target position
+      if (gameRunning) {
+        if (puck && goalie.trackingPuck) {
+          // Track the puck - predict where it will be at goalie's y position
+          if (Math.abs(puck.vy) > 0.1) {
+            const timeToReachGoalie = (goalie.y - puck.y) / Math.abs(puck.vy);
+            const predictedX = puck.x + puck.vx * timeToReachGoalie;
+            goalie.targetX = predictedX;
+          } else {
+            // If puck is moving horizontally, track current puck position
+            goalie.targetX = puck.x;
+          }
+        } else {
+          // Track player position when no puck or before reaction delay
+          goalie.targetX = player.x;
+        }
+        
+        // Constrain goalie target to goal area
+        const goalieHalfWidth = goalie.width / 2;
+        goalie.targetX = Math.max(goalLeft + goalieHalfWidth, Math.min(goalRight - goalieHalfWidth, goalie.targetX));
+        
+        // Smoothly move goalie toward target
+        const goalieCenter = goalie.x;
+        const distance = goalie.targetX - goalieCenter;
+        
+        if (Math.abs(distance) > 0.5) {
+          goalie.currentSpeed = Math.sign(distance) * Math.min(Math.abs(distance) * 0.15, goalie.maxSpeed);
+          goalie.x += goalie.currentSpeed;
+          
+          // Keep goalie constrained to goal area
+          goalie.x = Math.max(goalLeft + goalieHalfWidth, Math.min(goalRight - goalieHalfWidth, goalie.x));
+        } else {
+          goalie.x = goalie.targetX;
+        }
+      }
+
+      // Update puck
+      if (puck) {
+        puck.x += puck.vx;
+        puck.y += puck.vy;
+
+        // Check collision with goalie (more accurate circle-rectangle collision)
+        const goalieLeft = goalie.x - goalie.width / 2;
+        const goalieRight = goalie.x + goalie.width / 2;
+        const goalieTop = goalie.y - goalie.height / 2;
+        const goalieBottom = goalie.y + goalie.height / 2;
+
+        // Find closest point on rectangle to circle center
+        const closestX = Math.max(goalieLeft, Math.min(puck.x, goalieRight));
+        const closestY = Math.max(goalieTop, Math.min(puck.y, goalieBottom));
+        
+        // Calculate distance from circle center to closest point
+        const dx = puck.x - closestX;
+        const dy = puck.y - closestY;
+        const distanceSquared = dx * dx + dy * dy;
+
+        if (distanceSquared < puck.radius * puck.radius) {
+          // Blocked!
+          puck = null;
+          goalie.trackingPuck = false;
+          if (goalieReactionTimeout) {
+            clearTimeout(goalieReactionTimeout);
+            goalieReactionTimeout = null;
+          }
+          lives--;
+          livesEl.textContent = lives;
+          
+          // Reset player to starting position
+          resetPlayerPosition();
+          
+          if (lives <= 0) {
+            endGame();
+          }
+          return;// Exit early to avoid checking other conditions
+        }
+
+        // Check if puck scored (reached top and within goal area)
+        if (puck.y - puck.radius < 0) {
+          // Check if puck is in goal area
+          if (puck.x >= goalLeft && puck.x <= goalRight) {
+            // Scored!
+            score++;
+            scoreEl.textContent = score;
+            puck = null;
+            goalie.trackingPuck = false;
+            if (goalieReactionTimeout) {
+              clearTimeout(goalieReactionTimeout);
+              goalieReactionTimeout = null;
+            }
+            
+            // Update high score
+            if (score > highScore) {
+              highScore = score;
+              highScoreEl.textContent = highScore;
+              try {
+                localStorage.setItem('hockeyHighScore', highScore.toString());
+              } catch (e) {
+                console.warn('Could not save high score');
+              }
+            }
+
+            // Increase difficulty (decrease reaction delay)
+            goalie.reactionDelay = Math.max(100, goalie.reactionDelay - 20);
+            
+            // Reset player to starting position after scoring
+            resetPlayerPosition();
+          } else {
+            // Missed - went out of bounds at top (counts as blocked)
+            puck = null;
+            goalie.trackingPuck = false;
+            if (goalieReactionTimeout) {
+              clearTimeout(goalieReactionTimeout);
+              goalieReactionTimeout = null;
+            }
+            lives--;
+            livesEl.textContent = lives;
+            
+            // Reset player to starting position
+            resetPlayerPosition();
+            
+            if (lives <= 0) {
+              endGame();
+            }
+          }
+        }
+
+        // Check if puck went out of bounds (sides or bottom) - counts as blocked
+        if (puck && (puck.x < -puck.radius || puck.x > canvas.width + puck.radius ||
+                     puck.y > canvas.height + puck.radius)) {
+          puck = null;
+          goalie.trackingPuck = false;
+          if (goalieReactionTimeout) {
+            clearTimeout(goalieReactionTimeout);
+            goalieReactionTimeout = null;
+          }
+          lives--;
+          livesEl.textContent = lives;
+          
+          // Reset player to starting position
+          resetPlayerPosition();
+          
+          if (lives <= 0) {
+            endGame();
+          }
+        }
+      }
+    }
+
+    function draw() {
+      // Clear canvas
+      ctx.fillStyle = '#0d1b2a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw rink lines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 2;
+      
+      // Center line
+      ctx.beginPath();
+      ctx.moveTo(0, canvas.height / 2);
+      ctx.lineTo(canvas.width, canvas.height / 2);
+      ctx.stroke();
+
+      // Goal area (top)
+      ctx.strokeStyle = 'rgba(100, 181, 246, 0.5)';
+      ctx.strokeRect(canvas.width / 2 - 100, 0, 200, 60);
+
+      // Draw goalie
+      ctx.fillStyle = '#ff6b6b';
+      ctx.fillRect(goalie.x - goalie.width / 2, goalie.y - goalie.height / 2, goalie.width, goalie.height);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(goalie.x - goalie.width / 2, goalie.y - goalie.height / 2, goalie.width, goalie.height);
+
+      // Draw player
+      ctx.fillStyle = '#64b5f6';
+      ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
+
+      // Draw aim indicator
+      if (!puck) {
+        ctx.strokeStyle = 'rgba(100, 181, 246, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        const startY = player.y - player.height / 2;
+        ctx.moveTo(player.x, startY);
+        const aimLength = 60;
+        const endX = player.x + Math.sin(player.aimAngle) * aimLength;
+        const endY = startY - Math.cos(player.aimAngle) * aimLength;
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        // Draw small circle at end of aim line
+        ctx.fillStyle = 'rgba(100, 181, 246, 0.8)';
+        ctx.beginPath();
+        ctx.arc(endX, endY, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw puck
+      if (puck) {
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      finalScoreEl.textContent = score;
+      gameOverScreen.classList.add('show');
+    }
+
+    function resetPlayerPosition() {
+      // Reset player to starting position
+      player.x = startX;
+      player.y = startY;
+      player.forwardVelocity = 0;
+      player.aimAngle = 0;
+      targetAimAngle = 0;
+    }
+
+    function resetGame() {
+      score = 0;
+      lives = 3;
+      gameRunning = true;
+      puck = null;
+      resetPlayerPosition();
+      goalie.x = canvas.width / 2;
+      goalie.targetX = canvas.width / 2;
+      goalie.reactionDelay = 500;
+      goalie.trackingPuck = false;
+      useMouseAim = false;
+      if (goalieReactionTimeout) {
+        clearTimeout(goalieReactionTimeout);
+        goalieReactionTimeout = null;
+      }
+      scoreEl.textContent = score;
+      livesEl.textContent = lives;
+      gameOverScreen.classList.remove('show');
+    }
+
+    playAgainBtn.addEventListener('click', resetGame);
+
+    // Game loop
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>
+
