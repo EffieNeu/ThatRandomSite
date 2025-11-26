@@ -127,9 +127,9 @@
     #gameCanvas {
       border: 3px solid rgba(100, 181, 246, 0.3);
       border-radius: 15px;
-      background: linear-gradient(180deg, #1a3a52 0%, #0d1b2a 50%, #1a3a52 100%);
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       cursor: crosshair;
+      display: block;
     }
 
     .instructions {
@@ -275,15 +275,72 @@
     </div>
   </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script>
     const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
     const scoreEl = document.getElementById('score');
     const highScoreEl = document.getElementById('highScore');
     const livesEl = document.getElementById('lives');
     const gameOverScreen = document.getElementById('gameOverScreen');
     const finalScoreEl = document.getElementById('finalScore');
     const playAgainBtn = document.getElementById('playAgainBtn');
+
+    // Three.js setup
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+    scene.fog = new THREE.FogExp2(0x1a1a2e, 0.015);
+
+    const camera = new THREE.PerspectiveCamera(75, canvas.width / canvas.height, 0.1, 1000);
+    camera.position.set(0, 30, 50);
+    camera.lookAt(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+    renderer.setSize(canvas.width, canvas.height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+
+    // Enhanced Lighting
+    const ambientLight = new THREE.AmbientLight(0x87ceeb, 0.4);
+    scene.add(ambientLight);
+
+    // Main directional light (stadium lights)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    directionalLight.position.set(20, 60, 30);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.left = -60;
+    directionalLight.shadow.camera.right = 60;
+    directionalLight.shadow.camera.top = 60;
+    directionalLight.shadow.camera.bottom = -60;
+    directionalLight.shadow.mapSize.width = 4096;
+    directionalLight.shadow.mapSize.height = 4096;
+    directionalLight.shadow.bias = -0.0001;
+    directionalLight.shadow.normalBias = 0.02;
+    scene.add(directionalLight);
+
+    // Secondary directional light from opposite side
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
+    directionalLight2.position.set(-20, 50, -20);
+    scene.add(directionalLight2);
+
+    // Colored point lights for atmosphere
+    const pointLight1 = new THREE.PointLight(0x64b5f6, 0.8, 80);
+    pointLight1.position.set(-30, 15, 0);
+    scene.add(pointLight1);
+
+    const pointLight2 = new THREE.PointLight(0x64b5f6, 0.8, 80);
+    pointLight2.position.set(30, 15, 0);
+    scene.add(pointLight2);
+
+    // Goal area spotlight
+    const spotLight = new THREE.SpotLight(0xffffff, 1.5, 50, Math.PI / 6, 0.5, 2);
+    spotLight.position.set(0, 25, -20);
+    spotLight.target.position.set(0, 0, -27);
+    spotLight.castShadow = true;
+    scene.add(spotLight);
+    scene.add(spotLight.target);
 
     // Game state
     let score = 0;
@@ -299,43 +356,370 @@
       console.warn('localStorage not available');
     }
 
-    // Player
-    const startX = canvas.width / 2;
-    const startY = canvas.height - 40;
+    // Create rink (ice surface) with better material
+    const rinkGeometry = new THREE.PlaneGeometry(80, 60, 20, 15);
+    const rinkMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xb0e0e6,
+      roughness: 0.1,
+      metalness: 0.3,
+      envMapIntensity: 1.0
+    });
+    const rink = new THREE.Mesh(rinkGeometry, rinkMaterial);
+    rink.rotation.x = -Math.PI / 2;
+    rink.receiveShadow = true;
+    scene.add(rink);
+
+    // Add ice reflection effect with a subtle gradient
+    const iceGradient = new THREE.MeshStandardMaterial({
+      color: 0xa8d8e8,
+      roughness: 0.05,
+      metalness: 0.5,
+      transparent: true,
+      opacity: 0.3
+    });
+    const iceReflection = new THREE.Mesh(
+      new THREE.PlaneGeometry(80, 60),
+      iceGradient
+    );
+    iceReflection.rotation.x = -Math.PI / 2;
+    iceReflection.position.y = 0.01;
+    scene.add(iceReflection);
+
+    // Create rink boards (walls) with better materials
+    const boardMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xf5f5f5,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+    const boardHeight = 1.2;
+    const boardThickness = 0.3;
+    
+    // Top board
+    const topBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(80, boardHeight, boardThickness),
+      boardMaterial
+    );
+    topBoard.position.set(0, boardHeight / 2, -30);
+    topBoard.castShadow = true;
+    topBoard.receiveShadow = true;
+    scene.add(topBoard);
+    
+    // Bottom board
+    const bottomBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(80, boardHeight, boardThickness),
+      boardMaterial
+    );
+    bottomBoard.position.set(0, boardHeight / 2, 30);
+    bottomBoard.castShadow = true;
+    bottomBoard.receiveShadow = true;
+    scene.add(bottomBoard);
+    
+    // Left board
+    const leftBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(boardThickness, boardHeight, 60),
+      boardMaterial
+    );
+    leftBoard.position.set(-40, boardHeight / 2, 0);
+    leftBoard.castShadow = true;
+    leftBoard.receiveShadow = true;
+    scene.add(leftBoard);
+    
+    // Right board
+    const rightBoard = new THREE.Mesh(
+      new THREE.BoxGeometry(boardThickness, boardHeight, 60),
+      boardMaterial
+    );
+    rightBoard.position.set(40, boardHeight / 2, 0);
+    rightBoard.castShadow = true;
+    rightBoard.receiveShadow = true;
+    scene.add(rightBoard);
+
+    // Add board trim (red line at top)
+    const trimMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+    const trimHeight = 0.1;
+    [topBoard, bottomBoard, leftBoard, rightBoard].forEach(board => {
+      const trim = new THREE.Mesh(
+        new THREE.BoxGeometry(
+          board === leftBoard || board === rightBoard ? boardThickness + 0.05 : 80,
+          trimHeight,
+          board === topBoard || board === bottomBoard ? boardThickness + 0.05 : 60
+        ),
+        trimMaterial
+      );
+      trim.position.y = boardHeight - trimHeight / 2;
+      board.add(trim);
+    });
+
+    // Create rink lines with better visibility
+    const lineMaterial = new THREE.LineBasicMaterial({ 
+      color: 0xffffff, 
+      opacity: 0.8, 
+      transparent: true,
+      linewidth: 3
+    });
+    
+    // Center line (thicker)
+    const centerLineGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-40, 0.05, 0),
+      new THREE.Vector3(40, 0.05, 0)
+    ]);
+    const centerLine = new THREE.Line(centerLineGeometry, lineMaterial);
+    scene.add(centerLine);
+
+    // Center circle
+    const centerCircleGeometry = new THREE.RingGeometry(8, 8.2, 64);
+    const centerCircleMaterial = new THREE.MeshBasicMaterial({ 
+      color: 0xffffff, 
+      opacity: 0.8, 
+      transparent: true,
+      side: THREE.DoubleSide
+    });
+    const centerCircle = new THREE.Mesh(centerCircleGeometry, centerCircleMaterial);
+    centerCircle.rotation.x = -Math.PI / 2;
+    centerCircle.position.y = 0.05;
+    scene.add(centerCircle);
+
+    // Face-off circles
+    const faceOffCircleMaterial = new THREE.LineBasicMaterial({ 
+      color: 0xffffff, 
+      opacity: 0.6, 
+      transparent: true 
+    });
+    for (let z of [-15, 15]) {
+      const circleGeometry = new THREE.RingGeometry(4, 4.2, 64);
+      const circle = new THREE.Mesh(circleGeometry, centerCircleMaterial);
+      circle.rotation.x = -Math.PI / 2;
+      circle.position.set(0, 0.05, z);
+      scene.add(circle);
+    }
+
+    // Goal area with better visuals
+    const goalAreaGeometry = new THREE.BoxGeometry(20, 6, 0.15);
+    const goalAreaMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x64b5f6, 
+      opacity: 0.3, 
+      transparent: true,
+      side: THREE.DoubleSide,
+      roughness: 0.2,
+      metalness: 0.3,
+      emissive: 0x64b5f6,
+      emissiveIntensity: 0.2
+    });
+    const goalArea = new THREE.Mesh(goalAreaGeometry, goalAreaMaterial);
+    goalArea.position.set(0, 0.08, -27);
+    scene.add(goalArea);
+
+    // Goal area outline (thicker and more visible)
+    const goalOutlineGeometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-10, 0.06, -27),
+      new THREE.Vector3(10, 0.06, -27),
+      new THREE.Vector3(10, 0.06, -21),
+      new THREE.Vector3(-10, 0.06, -21),
+      new THREE.Vector3(-10, 0.06, -27)
+    ]);
+    const goalOutline = new THREE.Line(
+      goalOutlineGeometry, 
+      new THREE.LineBasicMaterial({ 
+        color: 0x64b5f6, 
+        opacity: 0.9, 
+        transparent: true,
+        linewidth: 4
+      })
+    );
+    scene.add(goalOutline);
+
+    // Goal net
+    const goalNetGroup = new THREE.Group();
+    const netMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff,
+      opacity: 0.7,
+      transparent: true,
+      wireframe: true
+    });
+    
+    // Net posts
+    const postMaterial = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.8, roughness: 0.2 });
+    const postGeometry = new THREE.CylinderGeometry(0.15, 0.15, 3, 16);
+    const leftPost = new THREE.Mesh(postGeometry, postMaterial);
+    leftPost.position.set(-10, 1.5, -27);
+    leftPost.castShadow = true;
+    goalNetGroup.add(leftPost);
+    
+    const rightPost = new THREE.Mesh(postGeometry, postMaterial);
+    rightPost.position.set(10, 1.5, -27);
+    rightPost.castShadow = true;
+    goalNetGroup.add(rightPost);
+    
+    const topPost = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.15, 0.15, 20, 16),
+      postMaterial
+    );
+    topPost.rotation.z = Math.PI / 2;
+    topPost.position.set(0, 3, -27);
+    topPost.castShadow = true;
+    goalNetGroup.add(topPost);
+
+    // Net mesh
+    const netSegments = 10;
+    for (let i = 0; i <= netSegments; i++) {
+      const x = -10 + (i / netSegments) * 20;
+      // Vertical lines
+      const verticalLine = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.02, 3, 8),
+        netMaterial
+      );
+      verticalLine.position.set(x, 1.5, -27);
+      goalNetGroup.add(verticalLine);
+      
+      // Horizontal lines
+      for (let j = 0; j <= 5; j++) {
+        const y = j * 0.6;
+        const horizontalLine = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.02, 0.02, 20 / netSegments, 8),
+          netMaterial
+        );
+        horizontalLine.rotation.z = Math.PI / 2;
+        horizontalLine.position.set(x - 10 / netSegments, y, -27);
+        goalNetGroup.add(horizontalLine);
+      }
+    }
+    
+    scene.add(goalNetGroup);
+
+    // Player (3D hockey player representation) - enhanced
+    const startX = 0;
+    const startZ = 25;
+    
+    const playerGroup = new THREE.Group();
+    
+    // Player body (more detailed - using rounded box)
+    const playerBodyGeometry = new THREE.BoxGeometry(1.2, 2.5, 0.8, 2, 4, 2);
+    const playerMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x64b5f6,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+    const playerBody = new THREE.Mesh(playerBodyGeometry, playerMaterial);
+    playerBody.castShadow = true;
+    playerBody.receiveShadow = true;
+    playerGroup.add(playerBody);
+
+    // Player helmet
+    const helmetGeometry = new THREE.SphereGeometry(0.6, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const helmetMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x64b5f6,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const helmet = new THREE.Mesh(helmetGeometry, helmetMaterial);
+    helmet.position.set(0, 2.2, 0);
+    helmet.castShadow = true;
+    playerGroup.add(helmet);
+
+    // Player stick (more realistic)
+    const stickHandleGeometry = new THREE.CylinderGeometry(0.08, 0.08, 2.5, 8);
+    const stickBladeGeometry = new THREE.BoxGeometry(0.15, 0.3, 0.8);
+    const stickMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x8b4513,
+      roughness: 0.6,
+      metalness: 0.1
+    });
+    
+    const stickHandle = new THREE.Mesh(stickHandleGeometry, stickMaterial);
+    stickHandle.position.set(0, 0.5, 1.2);
+    stickHandle.rotation.x = Math.PI / 2;
+    stickHandle.castShadow = true;
+    playerGroup.add(stickHandle);
+    
+    const stickBlade = new THREE.Mesh(stickBladeGeometry, stickMaterial);
+    stickBlade.position.set(0, 0.5, 1.8);
+    stickBlade.rotation.x = Math.PI / 2;
+    stickBlade.castShadow = true;
+    playerGroup.add(stickBlade);
+
+    playerGroup.position.set(startX, 1.5, startZ);
+    scene.add(playerGroup);
     
     const player = {
       x: startX,
-      y: startY,
-      width: 40,
-      height: 20,
-      forwardVelocity: 0, // Forward momentum (toward goal, negative Y)
-      minForwardSpeed: 1.5, // Minimum speed once moving (can't stop)
-      maxForwardSpeed: 3, // Reduced max speed
-      acceleration: 0.15, // Slower acceleration
-      friction: 0.98, // Very low friction (ice-like, but maintains minimum speed)
-      strafeSpeed: 2, // Slower strafe speed
-      aimAngle: 0 // in radians, 0 = straight up
+      z: startZ,
+      mesh: playerGroup,
+      forwardVelocity: 0,
+      minForwardSpeed: 0.15,
+      maxForwardSpeed: 0.3,
+      acceleration: 0.015,
+      friction: 0.98,
+      strafeSpeed: 0.2,
+      aimAngle: 0,
+      stickAngle: 0
     };
 
-    // Goalie
+    // Goalie (3D representation) - enhanced
+    const goalieGroup = new THREE.Group();
+    
+    // Goalie body (wider, more realistic)
+    const goalieBodyGeometry = new THREE.BoxGeometry(3, 2.8, 1.5, 2, 4, 2);
+    const goalieMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xff6b6b,
+      roughness: 0.4,
+      metalness: 0.1
+    });
+    const goalieBody = new THREE.Mesh(goalieBodyGeometry, goalieMaterial);
+    goalieBody.castShadow = true;
+    goalieBody.receiveShadow = true;
+    goalieGroup.add(goalieBody);
+
+    // Goalie helmet
+    const goalieHelmetGeometry = new THREE.SphereGeometry(0.7, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+    const goalieHelmetMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xff6b6b,
+      roughness: 0.2,
+      metalness: 0.8
+    });
+    const goalieHelmet = new THREE.Mesh(goalieHelmetGeometry, goalieHelmetMaterial);
+    goalieHelmet.position.set(0, 2.1, 0);
+    goalieHelmet.castShadow = true;
+    goalieGroup.add(goalieHelmet);
+
+    // Goalie pads (legs)
+    const padMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff,
+      roughness: 0.5,
+      metalness: 0.1
+    });
+    const padGeometry = new THREE.BoxGeometry(0.8, 1.5, 0.6);
+    
+    const leftPad = new THREE.Mesh(padGeometry, padMaterial);
+    leftPad.position.set(-0.6, 0.5, 0);
+    leftPad.castShadow = true;
+    goalieGroup.add(leftPad);
+    
+    const rightPad = new THREE.Mesh(padGeometry, padMaterial);
+    rightPad.position.set(0.6, 0.5, 0);
+    rightPad.castShadow = true;
+    goalieGroup.add(rightPad);
+
+    goalieGroup.position.set(0, 1.5, -27);
+    scene.add(goalieGroup);
+
     const goalie = {
-      x: canvas.width / 2,
-      y: 30,
-      width: 80,
-      height: 30,
-      targetX: canvas.width / 2,
-      reactionDelay: 500, // milliseconds
-      maxSpeed: 3,
+      x: 0,
+      z: -27,
+      mesh: goalieGroup,
+      targetX: 0,
+      reactionDelay: 500,
+      maxSpeed: 0.3,
       currentSpeed: 0,
-      trackingPuck: false // Whether goalie is tracking puck or player
+      trackingPuck: false
     };
     
-    // Goal area bounds (same as goal area)
-    const goalLeft = canvas.width / 2 - 100;
-    const goalRight = canvas.width / 2 + 100;
+    // Goal area bounds (in 3D space, X axis)
+    const goalLeft = -10;
+    const goalRight = 10;
 
     // Puck
     let puck = null;
+    let puckMesh = null;
 
     // Keys
     const keys = {
@@ -385,25 +769,35 @@
       }
     });
 
-    // Mouse position for aiming
-    let mouseX = canvas.width / 2;
-    let mouseY = canvas.height / 2;
+    // Mouse position for aiming (3D world coordinates)
+    let mouseWorldX = 0;
+    let mouseWorldZ = -27;
     let useMouseAim = false;
-    let targetAimAngle = 0; // Target angle for smooth interpolation
-    const aimSmoothing = 0.15; // Lower = smoother but slower response
+    let targetAimAngle = 0;
+    const aimSmoothing = 0.15;
 
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-      mouseX = (e.clientX - rect.left) * scaleX;
-      mouseY = (e.clientY - rect.top) * scaleY;
+      const mouse = new THREE.Vector2();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(mouse, camera);
+      
+      // Intersect with rink plane
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const intersectPoint = new THREE.Vector3();
+      raycaster.ray.intersectPlane(plane, intersectPoint);
+      
+      mouseWorldX = intersectPoint.x;
+      mouseWorldZ = intersectPoint.z;
       useMouseAim = true;
       
       // Calculate target angle from mouse position
-      const dx = mouseX - player.x;
-      const dy = mouseY - player.y;
-      let newAngle = Math.atan2(dy, dx) - Math.PI / 2;
+      const dx = mouseWorldX - player.x;
+      const dz = mouseWorldZ - player.z;
+      let newAngle = Math.atan2(dx, -dz);
       newAngle = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, newAngle));
       targetAimAngle = newAngle;
     });
@@ -415,20 +809,118 @@
     // Track goalie reaction timeout
     let goalieReactionTimeout = null;
 
+    // Particle system for shot effects
+    let shotParticles = [];
+    function createShotParticles(x, z) {
+      const particleCount = 20;
+      const particleGeometry = new THREE.BufferGeometry();
+      const positions = new Float32Array(particleCount * 3);
+      const velocities = [];
+      
+      for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        positions[i3] = x;
+        positions[i3 + 1] = 0.5;
+        positions[i3 + 2] = z;
+        
+        velocities.push({
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: Math.random() * 0.2 + 0.1,
+          vz: (Math.random() - 0.5) * 0.3,
+          life: 1.0
+        });
+      }
+      
+      particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const particleMaterial = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 0.1,
+        transparent: true,
+        opacity: 0.8
+      });
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      particles.userData.velocities = velocities;
+      scene.add(particles);
+      shotParticles.push(particles);
+    }
+
+    function updateParticles() {
+      shotParticles.forEach((particles, index) => {
+        const positions = particles.geometry.attributes.position.array;
+        const velocities = particles.userData.velocities;
+        let allDead = true;
+        
+        for (let i = 0; i < velocities.length; i++) {
+          if (velocities[i].life > 0) {
+            allDead = false;
+            const i3 = i * 3;
+            positions[i3] += velocities[i].vx;
+            positions[i3 + 1] += velocities[i].vy;
+            positions[i3 + 2] += velocities[i].vz;
+            velocities[i].vy -= 0.01; // gravity
+            velocities[i].life -= 0.02;
+            
+            if (velocities[i].life <= 0) {
+              positions[i3 + 1] = -10; // hide dead particles
+            }
+          }
+        }
+        
+        particles.geometry.attributes.position.needsUpdate = true;
+        particles.material.opacity = Math.max(0, velocities[0]?.life || 0);
+        
+        if (allDead) {
+          scene.remove(particles);
+          particles.geometry.dispose();
+          particles.material.dispose();
+          shotParticles.splice(index, 1);
+        }
+      });
+    }
+
     function shoot() {
       if (!gameRunning || puck) return;
 
-      // Use current smoothed aim angle (already calculated in update loop)
-      // No need to recalculate here
+      // Create shot particles
+      createShotParticles(player.x, player.z);
 
-      // Create puck - angle 0 is straight up
-      const speed = 8;
+      // Create puck in 3D with enhanced visuals
+      const speed = 0.8;
+      const puckGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.15, 16);
+      const puckMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0x1a1a1a,
+        roughness: 0.3,
+        metalness: 0.7,
+        emissive: 0x000000,
+        emissiveIntensity: 0
+      });
+      puckMesh = new THREE.Mesh(puckGeometry, puckMaterial);
+      puckMesh.rotation.x = Math.PI / 2;
+      puckMesh.castShadow = true;
+      puckMesh.receiveShadow = true;
+      
+      // Add puck rim
+      const rimGeometry = new THREE.TorusGeometry(0.3, 0.02, 8, 16);
+      const rimMaterial = new THREE.MeshStandardMaterial({ 
+        color: 0xff0000,
+        roughness: 0.2,
+        metalness: 0.8
+      });
+      const rim = new THREE.Mesh(rimGeometry, rimMaterial);
+      rim.rotation.x = Math.PI / 2;
+      puckMesh.add(rim);
+      
+      puckMesh.position.set(player.x, 0.3, player.z);
+      scene.add(puckMesh);
+
       puck = {
         x: player.x,
-        y: player.y - player.height / 2 - 10,
-        radius: 8,
+        z: player.z,
+        y: 0.3,
+        radius: 0.3,
         vx: Math.sin(player.aimAngle) * speed,
-        vy: -Math.cos(player.aimAngle) * speed,
+        vz: -Math.cos(player.aimAngle) * speed,
+        vy: 0,
         speed: speed
       };
 
@@ -440,16 +932,19 @@
       // Goalie starts tracking puck after reaction delay
       goalie.trackingPuck = false;
       goalieReactionTimeout = setTimeout(() => {
-        goalie.trackingPuck = true; // Start tracking puck after reaction delay
+        goalie.trackingPuck = true;
       }, goalie.reactionDelay);
     }
 
     function update() {
       if (!gameRunning) return;
+      
+      // Update particles
+      updateParticles();
 
       // Update player forward momentum (ice physics - constant motion)
       if (keys.forward) {
-        // Accelerate forward (toward goal, negative Y direction)
+        // Accelerate forward (toward goal, negative Z direction)
         player.forwardVelocity = Math.min(player.forwardVelocity + player.acceleration, player.maxForwardSpeed);
       } else {
         // Natural friction - slow down gradually but maintain minimum speed once moving
@@ -460,22 +955,23 @@
         }
       }
       
-      // Move player forward based on velocity
-      player.y -= player.forwardVelocity;
+      // Move player forward based on velocity (in 3D, Z is depth)
+      player.z -= player.forwardVelocity;
       
       // Strafe left/right (sideways movement)
-      if (keys.left && player.x > player.width / 2) {
+      if (keys.left && player.x > -38) {
         player.x -= player.strafeSpeed;
       }
-      if (keys.right && player.x < canvas.width - player.width / 2) {
+      if (keys.right && player.x < 38) {
         player.x += player.strafeSpeed;
       }
       
-      // Check if player went out of bounds (off the map)
-      const playerHalfWidth = player.width / 2;
-      const playerHalfHeight = player.height / 2;
-      if (player.x < -playerHalfWidth || player.x > canvas.width + playerHalfWidth ||
-          player.y < -playerHalfHeight || player.y > canvas.height + playerHalfHeight) {
+      // Update player mesh position
+      player.mesh.position.set(player.x, 1.5, player.z);
+      
+      // Check if player went out of bounds (off the rink)
+      if (player.x < -40 || player.x > 40 ||
+          player.z < -30 || player.z > 30) {
         // Player went off the map - lose a life
         lives--;
         livesEl.textContent = lives;
@@ -488,11 +984,11 @@
       }
       
       // Check if player entered goalie area (goal area)
-      const goalAreaTop = 0;
-      const goalAreaBottom = 60; // Height of goal area
-      if (player.y < goalAreaBottom && 
-          player.x >= goalLeft - playerHalfWidth && 
-          player.x <= goalRight + playerHalfWidth) {
+      const goalAreaTop = -21;
+      const goalAreaBottom = -27;
+      if (player.z < goalAreaBottom && player.z > goalAreaTop &&
+          player.x >= goalLeft - 1 && 
+          player.x <= goalRight + 1) {
         // Player entered goal area - lose a life
         lives--;
         livesEl.textContent = lives;
@@ -504,8 +1000,7 @@
         return; // Exit early
       }
 
-      // Update aim angle - use mouse if available, otherwise no arrow key aiming
-      // (Arrow keys now used for movement)
+      // Update aim angle - use mouse if available
       if (!useMouseAim) {
         // Keep current aim angle when not using mouse
         player.aimAngle = targetAimAngle;
@@ -516,13 +1011,19 @@
       
       // Ensure angle stays within bounds
       player.aimAngle = Math.max(-Math.PI / 3, Math.min(Math.PI / 3, player.aimAngle));
+      
+      // Update stick rotation (stickHandle is children[2], stickBlade is children[3])
+      if (player.mesh.children.length > 3) {
+        player.mesh.children[2].rotation.z = player.aimAngle;
+        player.mesh.children[3].rotation.z = player.aimAngle;
+      }
 
       // Update goalie target position
       if (gameRunning) {
         if (puck && goalie.trackingPuck) {
-          // Track the puck - predict where it will be at goalie's y position
-          if (Math.abs(puck.vy) > 0.1) {
-            const timeToReachGoalie = (goalie.y - puck.y) / Math.abs(puck.vy);
+          // Track the puck - predict where it will be at goalie's z position
+          if (Math.abs(puck.vz) > 0.01) {
+            const timeToReachGoalie = (goalie.z - puck.z) / Math.abs(puck.vz);
             const predictedX = puck.x + puck.vx * timeToReachGoalie;
             goalie.targetX = predictedX;
           } else {
@@ -535,14 +1036,14 @@
         }
         
         // Constrain goalie target to goal area
-        const goalieHalfWidth = goalie.width / 2;
+        const goalieHalfWidth = 2;
         goalie.targetX = Math.max(goalLeft + goalieHalfWidth, Math.min(goalRight - goalieHalfWidth, goalie.targetX));
         
         // Smoothly move goalie toward target
         const goalieCenter = goalie.x;
         const distance = goalie.targetX - goalieCenter;
         
-        if (Math.abs(distance) > 0.5) {
+        if (Math.abs(distance) > 0.05) {
           goalie.currentSpeed = Math.sign(distance) * Math.min(Math.abs(distance) * 0.15, goalie.maxSpeed);
           goalie.x += goalie.currentSpeed;
           
@@ -551,31 +1052,52 @@
         } else {
           goalie.x = goalie.targetX;
         }
+        
+        // Update goalie mesh position
+        goalie.mesh.position.set(goalie.x, 1.5, goalie.z);
       }
 
       // Update puck
-      if (puck) {
+      if (puck && puckMesh) {
         puck.x += puck.vx;
+        puck.z += puck.vz;
         puck.y += puck.vy;
 
-        // Check collision with goalie (more accurate circle-rectangle collision)
-        const goalieLeft = goalie.x - goalie.width / 2;
-        const goalieRight = goalie.x + goalie.width / 2;
-        const goalieTop = goalie.y - goalie.height / 2;
-        const goalieBottom = goalie.y + goalie.height / 2;
+        // Apply gravity
+        puck.vy -= 0.01;
+        if (puck.y < 0.3) {
+          puck.y = 0.3;
+          puck.vy = 0;
+        }
 
-        // Find closest point on rectangle to circle center
+        // Update puck mesh position and rotation
+        puckMesh.position.set(puck.x, puck.y, puck.z);
+        puckMesh.rotation.z += 0.2; // Rotate puck as it moves
+
+        // Check collision with goalie (3D sphere-box collision)
+        const goalieLeft = goalie.x - 2;
+        const goalieRight = goalie.x + 2;
+        const goalieFront = goalie.z - 0.75;
+        const goalieBack = goalie.z + 0.75;
+        const goalieBottom = 0;
+        const goalieTop = 3;
+
+        // Find closest point on box to sphere center
         const closestX = Math.max(goalieLeft, Math.min(puck.x, goalieRight));
-        const closestY = Math.max(goalieTop, Math.min(puck.y, goalieBottom));
+        const closestZ = Math.max(goalieFront, Math.min(puck.z, goalieBack));
+        const closestY = Math.max(goalieBottom, Math.min(puck.y, goalieTop));
         
-        // Calculate distance from circle center to closest point
+        // Calculate distance from sphere center to closest point
         const dx = puck.x - closestX;
+        const dz = puck.z - closestZ;
         const dy = puck.y - closestY;
-        const distanceSquared = dx * dx + dy * dy;
+        const distanceSquared = dx * dx + dz * dz + dy * dy;
 
         if (distanceSquared < puck.radius * puck.radius) {
           // Blocked!
+          scene.remove(puckMesh);
           puck = null;
+          puckMesh = null;
           goalie.trackingPuck = false;
           if (goalieReactionTimeout) {
             clearTimeout(goalieReactionTimeout);
@@ -593,14 +1115,16 @@
           return;// Exit early to avoid checking other conditions
         }
 
-        // Check if puck scored (reached top and within goal area)
-        if (puck.y - puck.radius < 0) {
+        // Check if puck scored (reached goal line and within goal area)
+        if (puck.z - puck.radius < -27) {
           // Check if puck is in goal area
           if (puck.x >= goalLeft && puck.x <= goalRight) {
             // Scored!
             score++;
             scoreEl.textContent = score;
+            scene.remove(puckMesh);
             puck = null;
+            puckMesh = null;
             goalie.trackingPuck = false;
             if (goalieReactionTimeout) {
               clearTimeout(goalieReactionTimeout);
@@ -624,8 +1148,10 @@
             // Reset player to starting position after scoring
             resetPlayerPosition();
           } else {
-            // Missed - went out of bounds at top (counts as blocked)
+            // Missed - went out of bounds at goal line (counts as blocked)
+            scene.remove(puckMesh);
             puck = null;
+            puckMesh = null;
             goalie.trackingPuck = false;
             if (goalieReactionTimeout) {
               clearTimeout(goalieReactionTimeout);
@@ -643,10 +1169,12 @@
           }
         }
 
-        // Check if puck went out of bounds (sides or bottom) - counts as blocked
-        if (puck && (puck.x < -puck.radius || puck.x > canvas.width + puck.radius ||
-                     puck.y > canvas.height + puck.radius)) {
+        // Check if puck went out of bounds (sides or back) - counts as blocked
+        if (puck && (puck.x < -40 - puck.radius || puck.x > 40 + puck.radius ||
+                     puck.z > 30 + puck.radius)) {
+          scene.remove(puckMesh);
           puck = null;
+          puckMesh = null;
           goalie.trackingPuck = false;
           if (goalieReactionTimeout) {
             clearTimeout(goalieReactionTimeout);
@@ -665,70 +1193,95 @@
       }
     }
 
-    function draw() {
-      // Clear canvas
-      ctx.fillStyle = '#0d1b2a';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Draw rink lines
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-      ctx.lineWidth = 2;
+    // Aim indicator line (3D) - enhanced
+    let aimLine = null;
+    let aimTarget = null;
+    function updateAimIndicator() {
+      if (aimLine) {
+        scene.remove(aimLine);
+        aimLine = null;
+      }
+      if (aimTarget) {
+        scene.remove(aimTarget);
+        aimTarget = null;
+      }
       
-      // Center line
-      ctx.beginPath();
-      ctx.moveTo(0, canvas.height / 2);
-      ctx.lineTo(canvas.width, canvas.height / 2);
-      ctx.stroke();
-
-      // Goal area (top)
-      ctx.strokeStyle = 'rgba(100, 181, 246, 0.5)';
-      ctx.strokeRect(canvas.width / 2 - 100, 0, 200, 60);
-
-      // Draw goalie
-      ctx.fillStyle = '#ff6b6b';
-      ctx.fillRect(goalie.x - goalie.width / 2, goalie.y - goalie.height / 2, goalie.width, goalie.height);
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(goalie.x - goalie.width / 2, goalie.y - goalie.height / 2, goalie.width, goalie.height);
-
-      // Draw player
-      ctx.fillStyle = '#64b5f6';
-      ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
-      ctx.strokeStyle = '#ffffff';
-      ctx.strokeRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
-
-      // Draw aim indicator
       if (!puck) {
-        ctx.strokeStyle = 'rgba(100, 181, 246, 0.6)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.beginPath();
-        const startY = player.y - player.height / 2;
-        ctx.moveTo(player.x, startY);
-        const aimLength = 60;
+        const aimLength = 6;
         const endX = player.x + Math.sin(player.aimAngle) * aimLength;
-        const endY = startY - Math.cos(player.aimAngle) * aimLength;
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-        ctx.setLineDash([]);
+        const endZ = player.z - Math.cos(player.aimAngle) * aimLength;
         
-        // Draw small circle at end of aim line
-        ctx.fillStyle = 'rgba(100, 181, 246, 0.8)';
-        ctx.beginPath();
-        ctx.arc(endX, endY, 4, 0, Math.PI * 2);
-        ctx.fill();
+        // Main aim line
+        const points = [
+          new THREE.Vector3(player.x, 0.5, player.z),
+          new THREE.Vector3(endX, 0.5, endZ)
+        ];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineDashedMaterial({ 
+          color: 0x64b5f6, 
+          dashSize: 0.4, 
+          gapSize: 0.2,
+          opacity: 0.8,
+          transparent: true,
+          linewidth: 2
+        });
+        aimLine = new THREE.Line(geometry, material);
+        aimLine.computeLineDistances();
+        scene.add(aimLine);
+        
+        // Aim target indicator (glowing sphere)
+        const targetGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+        const targetMaterial = new THREE.MeshStandardMaterial({ 
+          color: 0x64b5f6,
+          emissive: 0x64b5f6,
+          emissiveIntensity: 0.5,
+          transparent: true,
+          opacity: 0.7
+        });
+        aimTarget = new THREE.Mesh(targetGeometry, targetMaterial);
+        aimTarget.position.set(endX, 0.5, endZ);
+        scene.add(aimTarget);
       }
+    }
 
-      // Draw puck
-      if (puck) {
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(puck.x, puck.y, puck.radius, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+    // Smooth camera following
+    let cameraTargetX = 0;
+    let cameraTargetZ = 50;
+    let cameraTargetY = 35;
+    
+    function draw() {
+      // Smooth camera interpolation for better feel
+      const cameraOffsetX = 0;
+      const targetY = 35;
+      const targetZ = player.z + 45;
+      
+      cameraTargetX += (player.x - cameraTargetX) * 0.05;
+      cameraTargetY += (targetY - cameraTargetY) * 0.05;
+      cameraTargetZ += (targetZ - cameraTargetZ) * 0.05;
+      
+      camera.position.set(
+        cameraTargetX + cameraOffsetX,
+        cameraTargetY,
+        cameraTargetZ
+      );
+      
+      // Smooth look-at target
+      const lookAtTarget = new THREE.Vector3(player.x, 0, player.z);
+      const currentLookAt = new THREE.Vector3();
+      camera.getWorldDirection(currentLookAt);
+      const targetDirection = lookAtTarget.clone().sub(camera.position).normalize();
+      const smoothDirection = currentLookAt.lerp(targetDirection, 0.1);
+      camera.lookAt(
+        camera.position.x + smoothDirection.x * 50,
+        0,
+        camera.position.z + smoothDirection.z * 50
+      );
+      
+      // Update aim indicator
+      updateAimIndicator();
+      
+      // Render the scene
+      renderer.render(scene, camera);
     }
 
     function endGame() {
@@ -740,10 +1293,26 @@
     function resetPlayerPosition() {
       // Reset player to starting position
       player.x = startX;
-      player.y = startY;
+      player.z = startZ;
       player.forwardVelocity = 0;
       player.aimAngle = 0;
       targetAimAngle = 0;
+      player.mesh.position.set(player.x, 1.5, player.z);
+      
+      // Reset camera targets
+      cameraTargetX = startX;
+      cameraTargetZ = startZ + 45;
+      cameraTargetY = 35;
+      
+      // Remove puck if it exists
+      if (puckMesh) {
+        scene.remove(puckMesh);
+        puck = null;
+        puckMesh = null;
+      }
+      
+      // Update aim indicator
+      updateAimIndicator();
     }
 
     function resetGame() {
@@ -751,9 +1320,14 @@
       lives = 3;
       gameRunning = true;
       puck = null;
+      if (puckMesh) {
+        scene.remove(puckMesh);
+        puckMesh = null;
+      }
       resetPlayerPosition();
-      goalie.x = canvas.width / 2;
-      goalie.targetX = canvas.width / 2;
+      goalie.x = 0;
+      goalie.targetX = 0;
+      goalie.mesh.position.set(goalie.x, 1.5, goalie.z);
       goalie.reactionDelay = 500;
       goalie.trackingPuck = false;
       useMouseAim = false;
@@ -767,6 +1341,16 @@
     }
 
     playAgainBtn.addEventListener('click', resetGame);
+
+    // Handle window resize
+    function handleResize() {
+      const rect = canvas.getBoundingClientRect();
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rect.width, rect.height);
+    }
+    window.addEventListener('resize', handleResize);
+    handleResize();
 
     // Game loop
     function gameLoop() {
